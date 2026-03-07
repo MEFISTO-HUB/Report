@@ -10,6 +10,25 @@ from ad_security_reporter.connectors.ad_queries import computers_query
 from ad_security_reporter.connectors.powershell_connector import PowerShellConnector
 
 
+COMPUTERS_REPORT_COLUMN_NAMES = {
+    "Name": "Имя компьютера",
+    "DNSHostName": "DNS-имя",
+    "OperatingSystem": "Операционная система",
+    "OperatingSystemVersion": "Версия ОС",
+    "DistinguishedName": "DistinguishedName",
+    "CanonicalName": "Каноническое имя",
+    "Enabled": "Включен",
+    "LastLogonDate": "Последний вход",
+    "DaysSinceLastLogon": "Дней с последнего входа",
+    "WhenCreated": "Дата создания",
+    "PasswordLastSet": "Пароль компьютера изменен",
+    "DaysSincePasswordSet": "Дней без смены пароля компьютера",
+    "IPv4Address": "IPv4",
+    "Description": "Описание",
+    "StaleStatus": "Статус активности",
+}
+
+
 @dataclass
 class ComputerAuditResult:
     dataframe: pd.DataFrame
@@ -67,4 +86,5 @@ def collect_computer_audit(settings: AppSettings, connector: PowerShellConnector
         "Report defaults to LastLogonDate/LastLogonTimestamp for practical multi-DC reporting.",
         "Exact LastLogon is per-DC and can be added in optional exact mode via targeted polling.",
     ]
-    return ComputerAuditResult(dataframe=df, summary=summary, notes=notes)
+    report_df = df.rename(columns=COMPUTERS_REPORT_COLUMN_NAMES)
+    return ComputerAuditResult(dataframe=report_df, summary=summary, notes=notes)

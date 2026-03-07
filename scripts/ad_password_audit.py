@@ -23,7 +23,7 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     export_csv(result.dataframe, out_dir / "password_audit.csv")
     export_xlsx(result.dataframe, out_dir / "password_audit.xlsx", result.summary)
-    export_html(result.dataframe, out_dir / "password_audit.html", "Password Audit Report", result.summary, result.notes)
+    export_html(result.dataframe, out_dir / "password_audit.html", "Отчет по аудиту паролей", result.summary, result.notes)
 
     print("Password audit report generated:")
     print(out_dir / "password_audit.csv")

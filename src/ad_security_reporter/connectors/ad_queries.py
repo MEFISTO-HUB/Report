@@ -19,7 +19,11 @@ def users_query(server: str) -> str:
         f"""
         Import-Module ActiveDirectory
         Get-ADUser -Server '{server}' -Filter * -Properties DisplayName,Enabled,Department,Title,CanonicalName,MemberOf,PasswordLastSet,LastLogonDate,PasswordNeverExpires,CannotChangePassword,PasswordExpired,SmartcardLogonRequired,AccountExpirationDate,WhenCreated,adminCount |
-        Select-Object SamAccountName,Name,DisplayName,Enabled,Department,Title,CanonicalName,MemberOf,PasswordLastSet,LastLogonDate,PasswordNeverExpires,CannotChangePassword,PasswordExpired,SmartcardLogonRequired,AccountExpirationDate,WhenCreated,adminCount |
+        Select-Object SamAccountName,Name,DisplayName,Enabled,Department,Title,CanonicalName,MemberOf,PasswordLastSet,
+            @{{Name='DaysSincePasswordChange';Expression={{ if ($_.PasswordLastSet) {{ ((Get-Date) - $_.PasswordLastSet).Days }} else {{ $null }} }} }},
+            LastLogonDate,
+            @{{Name='DaysSinceLastLogon';Expression={{ if ($_.LastLogonDate) {{ ((Get-Date) - $_.LastLogonDate).Days }} else {{ $null }} }} }},
+            PasswordNeverExpires,CannotChangePassword,PasswordExpired,SmartcardLogonRequired,AccountExpirationDate,WhenCreated,adminCount |
         ConvertTo-Json -Depth 6
         """
     )
