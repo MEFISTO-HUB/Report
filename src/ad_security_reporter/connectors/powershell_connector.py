@@ -38,13 +38,37 @@ class PowerShellConnector:
         if not data:
             return ""
 
-        for encoding in ("utf-8", "utf-16-le", "cp1251", "cp866"):
+        for encoding in ("utf-8", "utf-16", "utf-16-le", "utf-16-be", "cp1251", "cp866"):
             try:
                 return data.decode(encoding)
             except UnicodeDecodeError:
                 continue
 
         return data.decode("utf-8", errors="replace")
+
+    @staticmethod
+    def _iter_decoded_outputs(data: bytes | None) -> list[str]:
+        if not data:
+            return [""]
+
+        candidates: list[str] = []
+        seen: set[str] = set()
+
+        def add(value: str) -> None:
+            if value in seen:
+                return
+            seen.add(value)
+            candidates.append(value)
+
+        add(PowerShellConnector._decode_output(data))
+
+        for encoding in ("utf-8-sig", "utf-16", "utf-16-le", "utf-16-be", "cp1251", "cp866"):
+            try:
+                add(data.decode(encoding))
+            except UnicodeDecodeError:
+                continue
+
+        return candidates
 
     def run_json(self, script: str) -> list[dict]:
         command = [
@@ -67,17 +91,24 @@ class PowerShellConnector:
         if not stdout:
             return []
 
-        payload = self._extract_json_payload(stdout)
-        try:
-            parsed = json.loads(payload)
-        except json.JSONDecodeError as exc:
-            logger.exception("JSON decode failed")
+        parsed = None
+        parse_error: json.JSONDecodeError | None = None
+        for decoded_output in self._iter_decoded_outputs(result.stdout):
+            payload = self._extract_json_payload(decoded_output.strip())
+            try:
+                parsed = json.loads(payload)
+                stdout = decoded_output.strip()
+                break
+            except json.JSONDecodeError as exc:
+                parse_error = exc
+
+        if parsed is None:
+            logger.error("JSON decode failed")
             preview = stdout.splitlines()[:5]
             raise PowerShellExecutionError(
-                f"Invalid JSON from PowerShell: {exc}. Output preview: {' | '.join(preview)}"
-            ) from exc
-        if parsed is None:
-            return []
+                "Invalid JSON from PowerShell: "
+                f"{parse_error}. Output preview: {' | '.join(preview)}"
+            ) from parse_error
         if isinstance(parsed, dict):
             return [parsed]
         return parsed
