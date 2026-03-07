@@ -4,6 +4,16 @@ import pandas as pd
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
 
 
+def _is_missing_value(value: object) -> bool:
+    """Safely evaluate whether a cell value should be treated as missing."""
+    missing = pd.isna(value)
+    if isinstance(missing, bool):
+        return missing
+    if hasattr(missing, "all"):
+        return bool(missing.all())
+    return False
+
+
 class PandasTableModel(QAbstractTableModel):
     def __init__(self, dataframe: pd.DataFrame | None = None) -> None:
         super().__init__()
@@ -25,7 +35,7 @@ class PandasTableModel(QAbstractTableModel):
             return None
         value = self._df.iat[index.row(), index.column()]
         if role == Qt.DisplayRole:
-            return "" if pd.isna(value) else str(value)
+            return "" if _is_missing_value(value) else str(value)
         if role == Qt.UserRole:
             return value
         return None
