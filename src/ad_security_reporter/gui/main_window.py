@@ -27,7 +27,7 @@ from ad_security_reporter.config.settings import AppSettings, save_settings
 from ad_security_reporter.connectors.powershell_connector import PowerShellConnector
 from ad_security_reporter.core.computer_audit import collect_computer_audit
 from ad_security_reporter.core.password_audit import collect_password_audit
-from ad_security_reporter.exporters.report_exporter import export_html
+from ad_security_reporter.exporters.report_exporter import build_report_path, export_html
 from ad_security_reporter.models.pandas_model import PandasTableModel
 
 logger = logging.getLogger(__name__)
@@ -226,13 +226,14 @@ class MainWindow(QMainWindow):
         folder = QFileDialog.getExistingDirectory(self, "Выберите папку экспорта")
         if not folder:
             return
-        base = Path(folder) / f"{name}_report"
+        folder_path = Path(folder)
         titles = {
             "password": "Отчет по аудиту паролей",
             "computers": "Отчет по активности компьютеров",
         }
-        export_html(df, base.with_suffix(".html"), titles.get(name, "Отчет"), summary, notes)
-        self.statusBar().showMessage(f"Экспорт завершен: {base.with_suffix('.html')}")
+        report_path = build_report_path(folder_path, f"{name}_report", ".html")
+        export_html(df, report_path, titles.get(name, "Отчет"), summary, notes)
+        self.statusBar().showMessage(f"Экспорт завершен: {report_path}")
 
     def export_all(self) -> None:
         self._export_dataset("password")
