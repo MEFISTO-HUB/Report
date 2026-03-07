@@ -1,0 +1,4 @@
+QWidget { background: #111827; color: #e5e7eb; }
+QTableView { gridline-color: #374151; selection-background-color: #2563eb; }
+QPushButton { background: #1f2937; border: 1px solid #374151; padding: 6px; border-radius: 6px; }
+QLineEdit, QComboBox { background: #0b1220; border: 1px solid #374151; padding: 4px; }
