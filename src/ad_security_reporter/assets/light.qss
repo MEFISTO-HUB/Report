@@ -1,4 +1,101 @@
-QWidget { background: #f8fafc; color: #0f172a; }
-QTableView { gridline-color: #cbd5e1; selection-background-color: #93c5fd; }
-QPushButton { background: #e2e8f0; border: 1px solid #cbd5e1; padding: 6px; border-radius: 6px; }
-QLineEdit, QComboBox { background: #ffffff; border: 1px solid #cbd5e1; padding: 4px; }
+QWidget {
+    background: #f1f5f9;
+    color: #0f172a;
+    font-family: "Segoe UI", "Inter", sans-serif;
+    font-size: 13px;
+}
+
+QMainWindow {
+    background: #e2e8f0;
+}
+
+QStatusBar {
+    background: #ffffff;
+    border-top: 1px solid #cbd5e1;
+}
+
+QTabWidget::pane {
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #ffffff;
+}
+
+QTabBar::tab {
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
+    padding: 8px 14px;
+    margin-right: 6px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    color: #334155;
+}
+
+QTabBar::tab:selected {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+
+QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #2563eb, stop:1 #3b82f6);
+    border: none;
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+QPushButton:hover {
+    background: #1d4ed8;
+}
+
+QPushButton:pressed {
+    background: #1e3a8a;
+}
+
+QLineEdit, QComboBox {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 6px 8px;
+    selection-background-color: #93c5fd;
+}
+
+QProgressBar {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    text-align: center;
+    background: #ffffff;
+}
+
+QProgressBar::chunk {
+    border-radius: 7px;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #22d3ee, stop:1 #2563eb);
+}
+
+QHeaderView::section {
+    background: #dbeafe;
+    color: #1e293b;
+    border: 1px solid #bfdbfe;
+    padding: 6px;
+    font-weight: 600;
+}
+
+QTableView {
+    gridline-color: #cbd5e1;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    alternate-background-color: #f8fafc;
+    selection-background-color: #93c5fd;
+    selection-color: #0f172a;
+}
+
+QLabel[class="statCards"] {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-left: 4px solid #2563eb;
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: #1e293b;
+    font-weight: 600;
+}

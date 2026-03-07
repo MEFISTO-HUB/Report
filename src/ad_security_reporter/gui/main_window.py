@@ -27,7 +27,7 @@ from ad_security_reporter.config.settings import AppSettings, save_settings
 from ad_security_reporter.connectors.powershell_connector import PowerShellConnector
 from ad_security_reporter.core.computer_audit import collect_computer_audit
 from ad_security_reporter.core.password_audit import collect_password_audit
-from ad_security_reporter.exporters.report_exporter import export_csv, export_html, export_xlsx
+from ad_security_reporter.exporters.report_exporter import export_html
 from ad_security_reporter.models.pandas_model import PandasTableModel
 
 logger = logging.getLogger(__name__)
@@ -46,9 +46,9 @@ class MainWindow(QMainWindow):
         self.computers_summary: dict = {}
         self.computers_notes: list[str] = []
 
-        self.setWindowTitle("AD Security Reporter")
+        self.setWindowTitle("Отчет по безопасности Active Directory")
         self.resize(1400, 820)
-        self.statusBar().showMessage("Ready")
+        self.statusBar().showMessage("Готово к работе")
 
         self.progress = QProgressBar()
         self.progress.setRange(0, 100)
@@ -63,10 +63,10 @@ class MainWindow(QMainWindow):
         self.settings_tab = self._build_settings_tab()
         self.export_tab = self._build_export_tab()
 
-        self.tabs.addTab(self.password_tab, "Password Audit")
-        self.tabs.addTab(self.computers_tab, "Computers Last Logon")
-        self.tabs.addTab(self.settings_tab, "Settings")
-        self.tabs.addTab(self.export_tab, "Export / Reports")
+        self.tabs.addTab(self.password_tab, "Аудит паролей")
+        self.tabs.addTab(self.computers_tab, "Последний вход компьютеров")
+        self.tabs.addTab(self.settings_tab, "Настройки")
+        self.tabs.addTab(self.export_tab, "Экспорт / Отчеты")
 
     def _build_password_tab(self) -> QWidget:
         widget = QWidget()
@@ -81,7 +81,8 @@ class MainWindow(QMainWindow):
         controls.addWidget(self.password_collect_btn)
         controls.addWidget(self.password_search)
 
-        self.password_cards = QLabel("Статистика: нет данных")
+        self.password_cards = QLabel("Статистика: данные еще не загружены")
+        self.password_cards.setProperty("class", "statCards")
         self.password_cards.setWordWrap(True)
 
         self.password_model = PandasTableModel()
@@ -113,7 +114,8 @@ class MainWindow(QMainWindow):
         controls.addWidget(self.computers_collect_btn)
         controls.addWidget(self.computers_search)
 
-        self.computers_cards = QLabel("Статистика: нет данных")
+        self.computers_cards = QLabel("Статистика: данные еще не загружены")
+        self.computers_cards.setProperty("class", "statCards")
         self.computers_cards.setWordWrap(True)
 
         self.computers_model = PandasTableModel()
@@ -151,22 +153,22 @@ class MainWindow(QMainWindow):
 
         layout.addRow("Домен", self.domain_input)
         layout.addRow("DC", self.dc_input)
-        layout.addRow("Optional fingerprint CSV", self.optional_csv_input)
-        layout.addRow("Theme", self.theme_combo)
-        layout.addRow("Risk medium days", self.medium_input)
-        layout.addRow("Risk high days", self.high_input)
-        layout.addRow("Risk critical days", self.critical_input)
+        layout.addRow("Доп. CSV с отпечатками паролей", self.optional_csv_input)
+        layout.addRow("Тема", self.theme_combo)
+        layout.addRow("Порог среднего риска (дни)", self.medium_input)
+        layout.addRow("Порог высокого риска (дни)", self.high_input)
+        layout.addRow("Порог критического риска (дни)", self.critical_input)
         layout.addRow(save_btn)
         return widget
 
     def _build_export_tab(self) -> QWidget:
         widget = QWidget()
         layout = QVBoxLayout(widget)
-        export_pwd_btn = QPushButton("Экспорт Password Audit")
+        export_pwd_btn = QPushButton("Экспорт отчета: аудит паролей (.html)")
         export_pwd_btn.clicked.connect(lambda: self._export_dataset("password"))
-        export_comp_btn = QPushButton("Экспорт Computers")
+        export_comp_btn = QPushButton("Экспорт отчета: компьютеры (.html)")
         export_comp_btn.clicked.connect(lambda: self._export_dataset("computers"))
-        export_all_btn = QPushButton("Экспорт всех отчетов")
+        export_all_btn = QPushButton("Экспортировать все отчеты (.html)")
         export_all_btn.clicked.connect(self.export_all)
         layout.addWidget(export_pwd_btn)
         layout.addWidget(export_comp_btn)
@@ -194,7 +196,7 @@ class MainWindow(QMainWindow):
         self.password_model.set_dataframe(self.password_df)
         self.password_cards.setText(" | ".join(f"{k}: {v}" for k, v in self.password_summary.items() if k != "risk_distribution"))
         self.progress.setValue(100)
-        self.statusBar().showMessage("Password audit complete")
+        self.statusBar().showMessage("Аудит паролей завершен")
 
     def collect_computers_data(self) -> None:
         self.progress.setValue(10)
@@ -211,7 +213,7 @@ class MainWindow(QMainWindow):
         self.computers_model.set_dataframe(self.computers_df)
         self.computers_cards.setText(" | ".join(f"{k}: {v}" for k, v in self.computers_summary.items() if k != "os_distribution"))
         self.progress.setValue(100)
-        self.statusBar().showMessage("Computer audit complete")
+        self.statusBar().showMessage("Аудит компьютеров завершен")
 
     def _export_dataset(self, name: str) -> None:
         df = self.password_df if name == "password" else self.computers_df
@@ -225,10 +227,12 @@ class MainWindow(QMainWindow):
         if not folder:
             return
         base = Path(folder) / f"{name}_report"
-        export_csv(df, base.with_suffix(".csv"))
-        export_xlsx(df, base.with_suffix(".xlsx"), summary)
-        export_html(df, base.with_suffix(".html"), f"{name.title()} report", summary, notes)
-        self.statusBar().showMessage(f"Экспорт завершен: {base}")
+        titles = {
+            "password": "Отчет по аудиту паролей",
+            "computers": "Отчет по активности компьютеров",
+        }
+        export_html(df, base.with_suffix(".html"), titles.get(name, "Отчет"), summary, notes)
+        self.statusBar().showMessage(f"Экспорт завершен: {base.with_suffix('.html')}")
 
     def export_all(self) -> None:
         self._export_dataset("password")
