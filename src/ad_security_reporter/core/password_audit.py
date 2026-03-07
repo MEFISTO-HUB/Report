@@ -12,6 +12,32 @@ from ad_security_reporter.connectors.powershell_connector import PowerShellConne
 
 logger = logging.getLogger(__name__)
 
+
+PASSWORD_REPORT_COLUMN_NAMES = {
+    "SamAccountName": "Логин",
+    "Name": "Имя",
+    "DisplayName": "Отображаемое имя",
+    "Enabled": "Включен",
+    "Department": "Отдел",
+    "Title": "Должность",
+    "CanonicalName": "Каноническое имя",
+    "PasswordLastSet": "Пароль изменен",
+    "DaysSincePasswordChange": "Дней без смены пароля",
+    "LastLogonDate": "Последний вход",
+    "DaysSinceLastLogon": "Дней с последнего входа",
+    "PasswordNeverExpires": "Пароль не истекает",
+    "CannotChangePassword": "Запрет смены пароля",
+    "PasswordExpired": "Пароль истек",
+    "SmartcardLogonRequired": "Требуется смарт-карта",
+    "AccountExpirationDate": "Срок действия учетной записи",
+    "WhenCreated": "Дата создания",
+    "adminCount": "adminCount",
+    "PrivilegedMember": "Привилегированная группа",
+    "PasswordAgeStatus": "Статус возраста пароля",
+    "RiskGroup": "Группа риска",
+    "PasswordFingerprintGroup": "Группа отпечатка пароля",
+}
+
 SENSITIVE_GROUP_KEYWORDS = [
     "Domain Admins",
     "Enterprise Admins",
@@ -143,4 +169,6 @@ def collect_password_audit(settings: AppSettings, connector: PowerShellConnector
         "privileged_accounts": int(df["PrivilegedMember"].sum()),
         "risk_distribution": df["RiskGroup"].value_counts().to_dict(),
     }
-    return PasswordAuditResult(policy=policy, dataframe=df, summary=summary, notes=notes)
+
+    report_df = df.drop(columns=["MemberOf"], errors="ignore").rename(columns=PASSWORD_REPORT_COLUMN_NAMES)
+    return PasswordAuditResult(policy=policy, dataframe=report_df, summary=summary, notes=notes)

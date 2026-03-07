@@ -23,7 +23,7 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     export_csv(result.dataframe, out_dir / "computers_lastlogon.csv")
     export_xlsx(result.dataframe, out_dir / "computers_lastlogon.xlsx", result.summary)
-    export_html(result.dataframe, out_dir / "computers_lastlogon.html", "Computers Last Logon Report", result.summary, result.notes)
+    export_html(result.dataframe, out_dir / "computers_lastlogon.html", "Отчет по последнему входу компьютеров", result.summary, result.notes)
 
     print("Computers report generated:")
     print(out_dir / "computers_lastlogon.csv")
