@@ -1,0 +1,10 @@
+domain: serbsky.lan
+domain_controller: kp-dc01
+theme: dark
+optional_password_audit_csv: examples/sample_password_fingerprint_groups.csv
+powershell_executable: powershell
+risk:
+  warn_days: 30
+  medium_days: 60
+  high_days: 90
+  critical_days: 180

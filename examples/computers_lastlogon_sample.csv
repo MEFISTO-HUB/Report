@@ -1,0 +1,4 @@
+Name,DNSHostName,OperatingSystem,Enabled,LastLogonDate,PasswordLastSet,DaysSinceLastLogon,DaysSincePasswordSet,StaleStatus
+WS-001,ws-001.serbsky.lan,Windows 11 Pro,True,2025-03-04,2025-02-15,2,20,Active
+WS-032,ws-032.serbsky.lan,Windows 10 Pro,True,2024-10-10,2024-07-11,150,210,Stale
+SRV-LEGACY,srv-legacy.serbsky.lan,Windows Server 2012 R2,False,2023-11-03,2023-06-01,400,550,Critical
