@@ -16,6 +16,9 @@ COMPUTERS_REPORT_COLUMN_NAMES = {
     "OperatingSystem": "Операционная система",
     "CanonicalName": "OU",
     "Enabled": "Включенная УЗ",
+    "LastLogonDate": "Последний вход",
+    "WhenCreated": "Дата создания",
+    "PasswordLastSet": "Пароль изменен",
     "DaysSinceLastLogon": "Дней с последнего входа",
     "IPv4Address": "IPv4",
     "Description": "Описание",
@@ -25,9 +28,6 @@ COMPUTERS_REPORT_COLUMN_NAMES = {
 COMPUTERS_REPORT_DROP_COLUMNS = [
     "OperatingSystemVersion",
     "DistinguishedName",
-    "LastLogonDate",
-    "WhenCreated",
-    "PasswordLastSet",
     "DaysSincePasswordSet",
     "StaleStatus",
 ]
