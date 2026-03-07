@@ -30,7 +30,9 @@ def computers_query(server: str) -> str:
         f"""
         Import-Module ActiveDirectory
         Get-ADComputer -Server '{server}' -Filter * -Properties DNSHostName,OperatingSystem,OperatingSystemVersion,DistinguishedName,CanonicalName,Enabled,LastLogonDate,WhenCreated,PasswordLastSet,IPv4Address,Description |
-        Select-Object Name,DNSHostName,OperatingSystem,OperatingSystemVersion,DistinguishedName,CanonicalName,Enabled,LastLogonDate,WhenCreated,PasswordLastSet,IPv4Address,Description |
+        Select-Object Name,DNSHostName,OperatingSystem,OperatingSystemVersion,DistinguishedName,CanonicalName,Enabled,LastLogonDate,
+            @{{Name='DaysSinceLastLogon';Expression={{ if ($_.LastLogonDate) {{ ((Get-Date) - $_.LastLogonDate).Days }} else {{ $null }} }} }},
+            WhenCreated,PasswordLastSet,IPv4Address,Description |
         ConvertTo-Json -Depth 5
         """
     )
