@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -37,7 +36,8 @@ def _to_datetime(value):
 
 
 def _days_since(ts: pd.Series) -> pd.Series:
-    now = datetime.now(timezone.utc)
+    ts = pd.to_datetime(ts, errors="coerce", utc=True)
+    now = pd.Timestamp.now(tz="UTC")
     return (now - ts).dt.days
 
 
