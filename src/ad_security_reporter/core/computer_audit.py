@@ -24,6 +24,7 @@ def _to_datetime(value):
 
 
 def _days_since(ts: pd.Series) -> pd.Series:
+    ts = pd.to_datetime(ts, errors="coerce", utc=True)
     now = datetime.now(timezone.utc)
     return (now - ts).dt.days
 
