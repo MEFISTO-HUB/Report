@@ -14,13 +14,13 @@ def build_report_path(directory: Path, base_name: str, suffix: str, generated_at
 
 def export_csv(df: pd.DataFrame, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(path, index=False, encoding="utf-8-sig")
+    df.to_csv(path, index=False, encoding="utf-8-sig", na_rep="")
 
 
 def export_xlsx(df: pd.DataFrame, path: Path, summary: dict[str, Any] | None = None) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with pd.ExcelWriter(path, engine="openpyxl") as writer:
-        df.to_excel(writer, sheet_name="Data", index=False)
+        df.to_excel(writer, sheet_name="Data", index=False, na_rep="")
         if summary:
             pd.DataFrame(list(summary.items()), columns=["Metric", "Value"]).to_excel(
                 writer, sheet_name="Summary", index=False
@@ -87,7 +87,7 @@ tr:nth-child(even) td {{ background:#111b31; }}
 <div class='generated-at'>Дата формирования отчета: {generated_at}</div>
 <div class='cards'>{cards}</div>
 <ul class='notes'>{notes_html}</ul>
-{df.to_html(index=False, classes='report-table')}
+    {df.to_html(index=False, classes='report-table', na_rep='')}
 </div>
 </body>
 </html>
