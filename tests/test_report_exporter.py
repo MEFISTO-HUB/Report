@@ -1,8 +1,9 @@
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
 
-from ad_security_reporter.exporters.report_exporter import export_html
+from ad_security_reporter.exporters.report_exporter import build_report_path, export_html
 
 
 def test_export_html_adds_generated_date_without_changing_table_columns(tmp_path: Path) -> None:
@@ -20,3 +21,11 @@ def test_export_html_adds_generated_date_without_changing_table_columns(tmp_path
     assert "<th>Колонка 1</th>" in html
     assert "<th>Колонка 2</th>" in html
     assert html.count("<th>") == 2
+
+
+def test_build_report_path_adds_timestamp_suffix(tmp_path: Path) -> None:
+    generated_at = datetime(2024, 1, 2, 3, 4, 5)
+
+    report_path = build_report_path(tmp_path, "password_audit", ".html", generated_at)
+
+    assert report_path.name == "password_audit_20240102_030405.html"

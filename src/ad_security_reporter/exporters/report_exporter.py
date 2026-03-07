@@ -7,6 +7,11 @@ from typing import Any
 import pandas as pd
 
 
+def build_report_path(directory: Path, base_name: str, suffix: str, generated_at: datetime | None = None) -> Path:
+    timestamp = (generated_at or datetime.now()).strftime("%Y%m%d_%H%M%S")
+    return directory / f"{base_name}_{timestamp}{suffix}"
+
+
 def export_csv(df: pd.DataFrame, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(path, index=False, encoding="utf-8-sig")

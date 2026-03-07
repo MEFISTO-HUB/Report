@@ -6,7 +6,7 @@ from pathlib import Path
 from ad_security_reporter.config.settings import load_settings
 from ad_security_reporter.connectors.powershell_connector import PowerShellConnector
 from ad_security_reporter.core.computer_audit import collect_computer_audit
-from ad_security_reporter.exporters.report_exporter import export_csv, export_html, export_xlsx
+from ad_security_reporter.exporters.report_exporter import build_report_path, export_csv, export_html, export_xlsx
 
 
 def main() -> int:
@@ -21,14 +21,18 @@ def main() -> int:
 
     out_dir = Path(args.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    export_csv(result.dataframe, out_dir / "computers_lastlogon.csv")
-    export_xlsx(result.dataframe, out_dir / "computers_lastlogon.xlsx", result.summary)
-    export_html(result.dataframe, out_dir / "computers_lastlogon.html", "Отчет по последнему входу компьютеров", result.summary, result.notes)
+    csv_path = build_report_path(out_dir, "computers_lastlogon", ".csv")
+    xlsx_path = build_report_path(out_dir, "computers_lastlogon", ".xlsx")
+    html_path = build_report_path(out_dir, "computers_lastlogon", ".html")
+
+    export_csv(result.dataframe, csv_path)
+    export_xlsx(result.dataframe, xlsx_path, result.summary)
+    export_html(result.dataframe, html_path, "Отчет по последнему входу компьютеров", result.summary, result.notes)
 
     print("Computers report generated:")
-    print(out_dir / "computers_lastlogon.csv")
-    print(out_dir / "computers_lastlogon.xlsx")
-    print(out_dir / "computers_lastlogon.html")
+    print(csv_path)
+    print(xlsx_path)
+    print(html_path)
     return 0
 
 
