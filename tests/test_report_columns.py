@@ -56,18 +56,27 @@ class ReportColumnsTests(unittest.TestCase):
         self.settings = AppSettings()
         self.connector = FakeConnector()
 
-    def test_password_report_uses_russian_headers_and_hides_memberof(self) -> None:
+    def test_password_report_uses_requested_columns_and_localized_bools(self) -> None:
         result = collect_password_audit(self.settings, self.connector)
 
-        self.assertIn("Дней без смены пароля", result.dataframe.columns)
-        self.assertIn("Дней с последнего входа", result.dataframe.columns)
-        self.assertNotIn("MemberOf", result.dataframe.columns)
+        self.assertIn("Включенная УЗ", result.dataframe.columns)
+        self.assertIn("OU", result.dataframe.columns)
+        self.assertNotIn("Отображаемое имя", result.dataframe.columns)
+        self.assertNotIn("Дней с последнего входа", result.dataframe.columns)
+        self.assertNotIn("Группа отпечатка пароля", result.dataframe.columns)
+        self.assertEqual(result.dataframe.iloc[0]["Включенная УЗ"], "Да")
+        self.assertEqual(result.dataframe.iloc[0]["Пароль не истекает"], "Нет")
+        self.assertEqual(result.dataframe.iloc[0]["Пароль изменен"], "2026-01-01 00:00:00")
 
-    def test_computer_report_uses_russian_headers_and_days_column(self) -> None:
+    def test_computer_report_uses_requested_columns_and_localized_bools(self) -> None:
         result = collect_computer_audit(self.settings, self.connector)
 
         self.assertIn("Дней с последнего входа", result.dataframe.columns)
-        self.assertIn("Статус активности", result.dataframe.columns)
+        self.assertIn("OU", result.dataframe.columns)
+        self.assertIn("Включенная УЗ", result.dataframe.columns)
+        self.assertNotIn("Статус активности", result.dataframe.columns)
+        self.assertNotIn("Версия ОС", result.dataframe.columns)
+        self.assertEqual(result.dataframe.iloc[0]["Включенная УЗ"], "Да")
 
 
 if __name__ == "__main__":
