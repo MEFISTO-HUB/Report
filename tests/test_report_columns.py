@@ -78,9 +78,13 @@ class ReportColumnsTests(unittest.TestCase):
         self.assertIn("Дней с последнего входа", result.dataframe.columns)
         self.assertIn("OU", result.dataframe.columns)
         self.assertIn("Включенная УЗ", result.dataframe.columns)
+        self.assertIn("Последний вход", result.dataframe.columns)
+        self.assertIn("Дата создания", result.dataframe.columns)
+        self.assertIn("Пароль изменен", result.dataframe.columns)
         self.assertNotIn("Статус активности", result.dataframe.columns)
         self.assertNotIn("Версия ОС", result.dataframe.columns)
         self.assertEqual(result.dataframe.iloc[0]["Включенная УЗ"], "Да")
+        self.assertEqual(result.dataframe.iloc[0]["Последний вход"], "2026-01-10 00:00:00")
 
 
 if __name__ == "__main__":
