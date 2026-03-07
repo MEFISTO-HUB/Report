@@ -17,6 +17,19 @@ class PowerShellExecutionError(RuntimeError):
 class PowerShellConnector:
     executable: str = "powershell"
 
+    @staticmethod
+    def _decode_output(data: bytes | None) -> str:
+        if not data:
+            return ""
+
+        for encoding in ("utf-8", "utf-16-le", "cp1251", "cp866"):
+            try:
+                return data.decode(encoding)
+            except UnicodeDecodeError:
+                continue
+
+        return data.decode("utf-8", errors="replace")
+
     def run_json(self, script: str) -> list[dict]:
         command = [
             self.executable,
@@ -27,11 +40,14 @@ class PowerShellConnector:
             script,
         ]
         logger.info("Running PowerShell command")
-        result = subprocess.run(command, capture_output=True, text=True, check=False)
+        result = subprocess.run(command, capture_output=True, text=False, check=False)
+        stdout = self._decode_output(result.stdout).strip()
+        stderr = self._decode_output(result.stderr).strip()
+
         if result.returncode != 0:
-            logger.error("PowerShell failed: %s", result.stderr.strip())
-            raise PowerShellExecutionError(result.stderr.strip() or "PowerShell command failed")
-        stdout = result.stdout.strip()
+            logger.error("PowerShell failed: %s", stderr)
+            raise PowerShellExecutionError(stderr or "PowerShell command failed")
+
         if not stdout:
             return []
         try:
