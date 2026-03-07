@@ -40,11 +40,9 @@ PASSWORD_REPORT_COLUMN_NAMES = {
 
 PASSWORD_REPORT_DROP_COLUMNS = [
     "DisplayName",
-    "LastLogonDate",
     "DaysSinceLastLogon",
     "SmartcardLogonRequired",
     "AccountExpirationDate",
-    "WhenCreated",
     "adminCount",
     "PrivilegedMember",
     "PasswordFingerprintGroup",
@@ -172,6 +170,8 @@ def collect_password_audit(settings: AppSettings, connector: PowerShellConnector
     df["RiskGroup"] = df.apply(lambda row: _risk_group(row, settings, complexity_enabled), axis=1)
 
     df["PasswordLastSet"] = _format_datetime(df["PasswordLastSet"])
+    df["LastLogonDate"] = _format_datetime(df["LastLogonDate"])
+    df["WhenCreated"] = _format_datetime(df["WhenCreated"])
 
     fingerprints = _load_optional_fingerprints(settings.optional_password_audit_csv)
     notes = [

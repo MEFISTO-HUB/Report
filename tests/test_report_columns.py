@@ -64,9 +64,13 @@ class ReportColumnsTests(unittest.TestCase):
         self.assertNotIn("Отображаемое имя", result.dataframe.columns)
         self.assertNotIn("Дней с последнего входа", result.dataframe.columns)
         self.assertNotIn("Группа отпечатка пароля", result.dataframe.columns)
+        self.assertIn("Последний вход", result.dataframe.columns)
+        self.assertIn("Дата создания", result.dataframe.columns)
         self.assertEqual(result.dataframe.iloc[0]["Включенная УЗ"], "Да")
         self.assertEqual(result.dataframe.iloc[0]["Пароль не истекает"], "Нет")
         self.assertEqual(result.dataframe.iloc[0]["Пароль изменен"], "2026-01-01 00:00:00")
+        self.assertEqual(result.dataframe.iloc[0]["Последний вход"], "2026-01-10 00:00:00")
+        self.assertEqual(result.dataframe.iloc[0]["Дата создания"], "2025-01-01 00:00:00")
 
     def test_computer_report_uses_requested_columns_and_localized_bools(self) -> None:
         result = collect_computer_audit(self.settings, self.connector)
