@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QComboBox,
+    QHeaderView,
 )
 
 from ad_security_reporter.config.settings import AppSettings, save_settings
@@ -91,6 +92,8 @@ class MainWindow(QMainWindow):
         self.password_table = QTableView()
         self.password_table.setSortingEnabled(True)
         self.password_table.setModel(self.password_proxy)
+        self.password_table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self.password_table.horizontalHeader().setStretchLastSection(True)
 
         layout.addLayout(controls)
         layout.addWidget(self.password_cards)
@@ -121,6 +124,8 @@ class MainWindow(QMainWindow):
         self.computers_table = QTableView()
         self.computers_table.setSortingEnabled(True)
         self.computers_table.setModel(self.computers_proxy)
+        self.computers_table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self.computers_table.horizontalHeader().setStretchLastSection(True)
 
         layout.addLayout(controls)
         layout.addWidget(self.computers_cards)
@@ -187,7 +192,6 @@ class MainWindow(QMainWindow):
         self.password_summary = result.summary
         self.password_notes = result.notes
         self.password_model.set_dataframe(self.password_df)
-        self.password_table.resizeColumnsToContents()
         self.password_cards.setText(" | ".join(f"{k}: {v}" for k, v in self.password_summary.items() if k != "risk_distribution"))
         self.progress.setValue(100)
         self.statusBar().showMessage("Password audit complete")
@@ -205,7 +209,6 @@ class MainWindow(QMainWindow):
         self.computers_summary = result.summary
         self.computers_notes = result.notes
         self.computers_model.set_dataframe(self.computers_df)
-        self.computers_table.resizeColumnsToContents()
         self.computers_cards.setText(" | ".join(f"{k}: {v}" for k, v in self.computers_summary.items() if k != "os_distribution"))
         self.progress.setValue(100)
         self.statusBar().showMessage("Computer audit complete")
