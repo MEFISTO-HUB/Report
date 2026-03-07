@@ -14,20 +14,23 @@ COMPUTERS_REPORT_COLUMN_NAMES = {
     "Name": "Имя компьютера",
     "DNSHostName": "DNS-имя",
     "OperatingSystem": "Операционная система",
-    "OperatingSystemVersion": "Версия ОС",
-    "DistinguishedName": "DistinguishedName",
-    "CanonicalName": "Каноническое имя",
-    "Enabled": "Включен",
-    "LastLogonDate": "Последний вход",
+    "CanonicalName": "OU",
+    "Enabled": "Включенная УЗ",
     "DaysSinceLastLogon": "Дней с последнего входа",
-    "WhenCreated": "Дата создания",
-    "PasswordLastSet": "Пароль компьютера изменен",
-    "DaysSincePasswordSet": "Дней без смены пароля компьютера",
     "IPv4Address": "IPv4",
     "Description": "Описание",
     "StaleStatus": "Статус активности",
 }
 
+COMPUTERS_REPORT_DROP_COLUMNS = [
+    "OperatingSystemVersion",
+    "DistinguishedName",
+    "LastLogonDate",
+    "WhenCreated",
+    "PasswordLastSet",
+    "DaysSincePasswordSet",
+    "StaleStatus",
+]
 
 @dataclass
 class ComputerAuditResult:
@@ -46,6 +49,19 @@ def _days_since(ts: pd.Series) -> pd.Series:
     ts = pd.to_datetime(ts, errors="coerce", utc=True)
     now = datetime.now(timezone.utc)
     return (now - ts).dt.days
+
+
+def _format_datetime(series: pd.Series) -> pd.Series:
+    dt = pd.to_datetime(series, errors="coerce", utc=True)
+    return dt.dt.strftime("%Y-%m-%d %H:%M:%S").fillna("")
+
+
+def _localize_bools(df: pd.DataFrame) -> pd.DataFrame:
+    localized = df.copy()
+    bool_columns = localized.select_dtypes(include=["bool"]).columns
+    for col in bool_columns:
+        localized[col] = localized[col].map({True: "Да", False: "Нет"})
+    return localized
 
 
 def _stale_status(days: float, settings: AppSettings) -> str:
@@ -74,6 +90,10 @@ def collect_computer_audit(settings: AppSettings, connector: PowerShellConnector
     df["DaysSincePasswordSet"] = _days_since(df["PasswordLastSet"])
     df["StaleStatus"] = df["DaysSinceLastLogon"].apply(lambda d: _stale_status(d, settings))
 
+    df["LastLogonDate"] = _format_datetime(df["LastLogonDate"])
+    df["PasswordLastSet"] = _format_datetime(df["PasswordLastSet"])
+    df["WhenCreated"] = _format_datetime(df["WhenCreated"])
+
     summary = {
         "total_computers": int(len(df)),
         "active": int((df["StaleStatus"] == "Active").sum()),
@@ -86,5 +106,6 @@ def collect_computer_audit(settings: AppSettings, connector: PowerShellConnector
         "Report defaults to LastLogonDate/LastLogonTimestamp for practical multi-DC reporting.",
         "Exact LastLogon is per-DC and can be added in optional exact mode via targeted polling.",
     ]
-    report_df = df.rename(columns=COMPUTERS_REPORT_COLUMN_NAMES)
+    report_df = df.drop(columns=COMPUTERS_REPORT_DROP_COLUMNS, errors="ignore")
+    report_df = _localize_bools(report_df).rename(columns=COMPUTERS_REPORT_COLUMN_NAMES)
     return ComputerAuditResult(dataframe=report_df, summary=summary, notes=notes)

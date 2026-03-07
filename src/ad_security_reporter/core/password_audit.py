@@ -17,10 +17,10 @@ PASSWORD_REPORT_COLUMN_NAMES = {
     "SamAccountName": "Логин",
     "Name": "Имя",
     "DisplayName": "Отображаемое имя",
-    "Enabled": "Включен",
+    "Enabled": "Включенная УЗ",
     "Department": "Отдел",
     "Title": "Должность",
-    "CanonicalName": "Каноническое имя",
+    "CanonicalName": "OU",
     "PasswordLastSet": "Пароль изменен",
     "DaysSincePasswordChange": "Дней без смены пароля",
     "LastLogonDate": "Последний вход",
@@ -37,6 +37,18 @@ PASSWORD_REPORT_COLUMN_NAMES = {
     "RiskGroup": "Группа риска",
     "PasswordFingerprintGroup": "Группа отпечатка пароля",
 }
+
+PASSWORD_REPORT_DROP_COLUMNS = [
+    "DisplayName",
+    "LastLogonDate",
+    "DaysSinceLastLogon",
+    "SmartcardLogonRequired",
+    "AccountExpirationDate",
+    "WhenCreated",
+    "adminCount",
+    "PrivilegedMember",
+    "PasswordFingerprintGroup",
+]
 
 SENSITIVE_GROUP_KEYWORDS = [
     "Domain Admins",
@@ -65,6 +77,19 @@ def _days_since(ts: pd.Series) -> pd.Series:
     ts = pd.to_datetime(ts, errors="coerce", utc=True)
     now = pd.Timestamp.now(tz="UTC")
     return (now - ts).dt.days
+
+
+def _format_datetime(series: pd.Series) -> pd.Series:
+    dt = pd.to_datetime(series, errors="coerce", utc=True)
+    return dt.dt.strftime("%Y-%m-%d %H:%M:%S").fillna("")
+
+
+def _localize_bools(df: pd.DataFrame) -> pd.DataFrame:
+    localized = df.copy()
+    bool_columns = localized.select_dtypes(include=["bool"]).columns
+    for col in bool_columns:
+        localized[col] = localized[col].map({True: "Да", False: "Нет"})
+    return localized
 
 
 def _contains_sensitive_group(member_of) -> bool:
@@ -146,6 +171,8 @@ def collect_password_audit(settings: AppSettings, connector: PowerShellConnector
     df["PasswordAgeStatus"] = df["DaysSincePasswordChange"].apply(lambda d: _password_age_status(d, settings))
     df["RiskGroup"] = df.apply(lambda row: _risk_group(row, settings, complexity_enabled), axis=1)
 
+    df["PasswordLastSet"] = _format_datetime(df["PasswordLastSet"])
+
     fingerprints = _load_optional_fingerprints(settings.optional_password_audit_csv)
     notes = [
         "SAFE DEFAULT MODE: identical passwords are not detectable from AD-only data.",
@@ -170,5 +197,6 @@ def collect_password_audit(settings: AppSettings, connector: PowerShellConnector
         "risk_distribution": df["RiskGroup"].value_counts().to_dict(),
     }
 
-    report_df = df.drop(columns=["MemberOf"], errors="ignore").rename(columns=PASSWORD_REPORT_COLUMN_NAMES)
+    report_df = df.drop(columns=["MemberOf", *PASSWORD_REPORT_DROP_COLUMNS], errors="ignore")
+    report_df = _localize_bools(report_df).rename(columns=PASSWORD_REPORT_COLUMN_NAMES)
     return PasswordAuditResult(policy=policy, dataframe=report_df, summary=summary, notes=notes)
