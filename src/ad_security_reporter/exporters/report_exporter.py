@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +24,7 @@ def export_xlsx(df: pd.DataFrame, path: Path, summary: dict[str, Any] | None = N
 
 def export_html(df: pd.DataFrame, path: Path, title: str, summary: dict[str, Any] | None = None, notes: list[str] | None = None) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     cards = ""
     if summary:
         palette = ["blue", "violet", "teal", "amber", "rose", "emerald"]
@@ -50,6 +52,7 @@ body {{
 }}
 .container {{ max-width: 1360px; margin: 0 auto; padding: 28px; }}
 h1 {{ font-size: 32px; margin: 0 0 18px; letter-spacing: .4px; }}
+.generated-at {{ color: #93c5fd; margin: 0 0 16px; font-size: 14px; }}
 .cards {{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:20px; }}
 .card {{
     border-radius:14px;
@@ -76,6 +79,7 @@ tr:nth-child(even) td {{ background:#111b31; }}
 <body>
 <div class='container'>
 <h1>{title}</h1>
+<div class='generated-at'>Дата формирования отчета: {generated_at}</div>
 <div class='cards'>{cards}</div>
 <ul class='notes'>{notes_html}</ul>
 {df.to_html(index=False, classes='report-table')}
