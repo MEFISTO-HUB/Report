@@ -18,6 +18,22 @@ class PowerShellConnector:
     executable: str = "powershell"
 
     @staticmethod
+    def _extract_json_payload(output: str) -> str:
+        trimmed = output.lstrip("\ufeff\r\n\t ")
+        if not trimmed:
+            return ""
+
+        start = min((idx for idx in (trimmed.find("["), trimmed.find("{")) if idx != -1), default=-1)
+        if start == -1:
+            return trimmed
+
+        candidate = trimmed[start:]
+        end = max(candidate.rfind("]"), candidate.rfind("}"))
+        if end != -1:
+            candidate = candidate[: end + 1]
+        return candidate
+
+    @staticmethod
     def _decode_output(data: bytes | None) -> str:
         if not data:
             return ""
@@ -50,11 +66,18 @@ class PowerShellConnector:
 
         if not stdout:
             return []
+
+        payload = self._extract_json_payload(stdout)
         try:
-            parsed = json.loads(stdout)
+            parsed = json.loads(payload)
         except json.JSONDecodeError as exc:
             logger.exception("JSON decode failed")
-            raise PowerShellExecutionError(f"Invalid JSON from PowerShell: {exc}") from exc
+            preview = stdout.splitlines()[:5]
+            raise PowerShellExecutionError(
+                f"Invalid JSON from PowerShell: {exc}. Output preview: {' | '.join(preview)}"
+            ) from exc
+        if parsed is None:
+            return []
         if isinstance(parsed, dict):
             return [parsed]
         return parsed
