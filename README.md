@@ -1,6 +1,6 @@
 # AD Security Reporter (Defensive-Only)
 
-Корпоративный desktop-инструмент внутреннего AD-аудита для домена `serbsky.lan` и DC `kp-dc01`.
+Корпоративный desktop-инструмент внутреннего AD-аудита для домена `xxxxxx` и DC `xxxxx`.
 
 ## Defensive-only scope
 Инструмент выполняет только администраторскую отчетность:
