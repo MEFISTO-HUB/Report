@@ -7,7 +7,8 @@ from PyInstaller.utils.hooks import collect_submodules
 hiddenimports = [m for m in collect_submodules('pandas') if not m.startswith('pandas.tests')]
 hiddenimports += ['ad_security_reporter.main']
 
-SPEC_DIR = Path(__file__).resolve().parent
+SPEC_PATH = Path(globals().get('SPEC', globals().get('__file__', 'pyinstaller/ad_security_reporter.spec'))).resolve()
+SPEC_DIR = SPEC_PATH.parent
 PROJECT_ROOT = SPEC_DIR.parent
 SRC_DIR = PROJECT_ROOT / 'src'
 
