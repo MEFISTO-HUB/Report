@@ -120,7 +120,7 @@ pyinstaller pyinstaller/ad_security_reporter.spec --noconfirm --clean
 ## Советы для доменной среды
 - Запускать под учетной записью с правами чтения AD.
 - На хосте должна быть доступна PowerShell и модуль `ActiveDirectory` (RSAT).
-- Проверить доступность `kp-dc01` по сети и DNS.
+- Проверить доступность `хххх` по сети и DNS.
 - При ошибках проверять `logs/ad_security_reporter.log`.
 
 ## Тестирование
