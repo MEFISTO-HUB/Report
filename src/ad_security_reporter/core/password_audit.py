@@ -9,6 +9,7 @@ import pandas as pd
 from ad_security_reporter.config.settings import AppSettings
 from ad_security_reporter.connectors.ad_queries import password_policy_query, users_query
 from ad_security_reporter.connectors.powershell_connector import PowerShellConnector
+from ad_security_reporter.core.datetime_utils import format_datetime, to_utc_datetime
 
 logger = logging.getLogger(__name__)
 
@@ -65,21 +66,10 @@ class PasswordAuditResult:
     notes: list[str]
 
 
-def _to_datetime(value):
-    if value in (None, "", "null"):
-        return pd.NaT
-    return pd.to_datetime(value, errors="coerce", utc=True)
-
-
 def _days_since(ts: pd.Series) -> pd.Series:
     ts = pd.to_datetime(ts, errors="coerce", utc=True)
     now = pd.Timestamp.now(tz="UTC")
     return (now - ts).dt.days
-
-
-def _format_datetime(series: pd.Series) -> pd.Series:
-    dt = pd.to_datetime(series, errors="coerce", utc=True)
-    return dt.dt.strftime("%Y-%m-%d %H:%M:%S").fillna("")
 
 
 def _localize_bools(df: pd.DataFrame) -> pd.DataFrame:
@@ -160,18 +150,18 @@ def collect_password_audit(settings: AppSettings, connector: PowerShellConnector
     if df.empty:
         return PasswordAuditResult(policy=policy, dataframe=df, summary={}, notes=["No AD users returned."])
 
-    df["PasswordLastSet"] = df["PasswordLastSet"].apply(_to_datetime)
-    df["LastLogonDate"] = df["LastLogonDate"].apply(_to_datetime)
-    df["WhenCreated"] = df["WhenCreated"].apply(_to_datetime)
+    df["PasswordLastSet"] = df["PasswordLastSet"].apply(to_utc_datetime)
+    df["LastLogonDate"] = df["LastLogonDate"].apply(to_utc_datetime)
+    df["WhenCreated"] = df["WhenCreated"].apply(to_utc_datetime)
     df["DaysSincePasswordChange"] = _days_since(df["PasswordLastSet"])
     df["DaysSinceLastLogon"] = _days_since(df["LastLogonDate"])
     df["PrivilegedMember"] = df["MemberOf"].apply(_contains_sensitive_group)
     df["PasswordAgeStatus"] = df["DaysSincePasswordChange"].apply(lambda d: _password_age_status(d, settings))
     df["RiskGroup"] = df.apply(lambda row: _risk_group(row, settings, complexity_enabled), axis=1)
 
-    df["PasswordLastSet"] = _format_datetime(df["PasswordLastSet"])
-    df["LastLogonDate"] = _format_datetime(df["LastLogonDate"])
-    df["WhenCreated"] = _format_datetime(df["WhenCreated"])
+    df["PasswordLastSet"] = format_datetime(df["PasswordLastSet"])
+    df["LastLogonDate"] = format_datetime(df["LastLogonDate"])
+    df["WhenCreated"] = format_datetime(df["WhenCreated"])
 
     fingerprints = _load_optional_fingerprints(settings.optional_password_audit_csv)
     notes = [

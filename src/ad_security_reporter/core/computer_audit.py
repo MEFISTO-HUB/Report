@@ -8,6 +8,7 @@ import pandas as pd
 from ad_security_reporter.config.settings import AppSettings
 from ad_security_reporter.connectors.ad_queries import computers_query
 from ad_security_reporter.connectors.powershell_connector import PowerShellConnector
+from ad_security_reporter.core.datetime_utils import format_datetime, to_utc_datetime
 
 
 COMPUTERS_REPORT_COLUMN_NAMES = {
@@ -39,21 +40,10 @@ class ComputerAuditResult:
     notes: list[str]
 
 
-def _to_datetime(value):
-    if value in (None, "", "null"):
-        return pd.NaT
-    return pd.to_datetime(value, errors="coerce", utc=True)
-
-
 def _days_since(ts: pd.Series) -> pd.Series:
     ts = pd.to_datetime(ts, errors="coerce", utc=True)
     now = datetime.now(timezone.utc)
     return (now - ts).dt.days
-
-
-def _format_datetime(series: pd.Series) -> pd.Series:
-    dt = pd.to_datetime(series, errors="coerce", utc=True)
-    return dt.dt.strftime("%Y-%m-%d %H:%M:%S").fillna("")
 
 
 def _localize_bools(df: pd.DataFrame) -> pd.DataFrame:
@@ -82,17 +72,17 @@ def collect_computer_audit(settings: AppSettings, connector: PowerShellConnector
     if df.empty:
         return ComputerAuditResult(dataframe=df, summary={}, notes=["No AD computers returned"])
 
-    df["LastLogonDate"] = df["LastLogonDate"].apply(_to_datetime)
-    df["PasswordLastSet"] = df["PasswordLastSet"].apply(_to_datetime)
-    df["WhenCreated"] = df["WhenCreated"].apply(_to_datetime)
+    df["LastLogonDate"] = df["LastLogonDate"].apply(to_utc_datetime)
+    df["PasswordLastSet"] = df["PasswordLastSet"].apply(to_utc_datetime)
+    df["WhenCreated"] = df["WhenCreated"].apply(to_utc_datetime)
 
     df["DaysSinceLastLogon"] = _days_since(df["LastLogonDate"])
     df["DaysSincePasswordSet"] = _days_since(df["PasswordLastSet"])
     df["StaleStatus"] = df["DaysSinceLastLogon"].apply(lambda d: _stale_status(d, settings))
 
-    df["LastLogonDate"] = _format_datetime(df["LastLogonDate"])
-    df["PasswordLastSet"] = _format_datetime(df["PasswordLastSet"])
-    df["WhenCreated"] = _format_datetime(df["WhenCreated"])
+    df["LastLogonDate"] = format_datetime(df["LastLogonDate"])
+    df["PasswordLastSet"] = format_datetime(df["PasswordLastSet"])
+    df["WhenCreated"] = format_datetime(df["WhenCreated"])
 
     summary = {
         "total_computers": int(len(df)),
