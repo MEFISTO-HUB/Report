@@ -2,18 +2,18 @@
 
 from PyInstaller.utils.hooks import collect_submodules
 
-hiddenimports = collect_submodules('pandas')
+hiddenimports = [m for m in collect_submodules('pandas') if not m.startswith('pandas.tests')]
 
 block_cipher = None
 
 a = Analysis(
-    ['run_gui.py'],
-    pathex=['.','src'],
+    ['../run_gui.py'],
+    pathex=['..', '../src'],
     binaries=[],
     datas=[
-        ('config/config.example.yaml', 'config'),
-        ('src/ad_security_reporter/assets/dark.qss', 'ad_security_reporter/assets'),
-        ('src/ad_security_reporter/assets/light.qss', 'ad_security_reporter/assets'),
+        ('../config/config.example.yaml', 'config'),
+        ('../src/ad_security_reporter/assets/dark.qss', 'ad_security_reporter/assets'),
+        ('../src/ad_security_reporter/assets/light.qss', 'ad_security_reporter/assets'),
     ],
     hiddenimports=hiddenimports,
     hookspath=[],
