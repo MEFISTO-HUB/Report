@@ -1,19 +1,26 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from pathlib import Path
+
 from PyInstaller.utils.hooks import collect_submodules
 
 hiddenimports = [m for m in collect_submodules('pandas') if not m.startswith('pandas.tests')]
+hiddenimports += ['ad_security_reporter.main']
+
+SPEC_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SPEC_DIR.parent
+SRC_DIR = PROJECT_ROOT / 'src'
 
 block_cipher = None
 
 a = Analysis(
-    ['../run_gui.py'],
-    pathex=['..', '../src'],
+    [str(PROJECT_ROOT / 'run_gui.py')],
+    pathex=[str(PROJECT_ROOT), str(SRC_DIR)],
     binaries=[],
     datas=[
-        ('../config/config.example.yaml', 'config'),
-        ('../src/ad_security_reporter/assets/dark.qss', 'ad_security_reporter/assets'),
-        ('../src/ad_security_reporter/assets/light.qss', 'ad_security_reporter/assets'),
+        (str(PROJECT_ROOT / 'config' / 'config.example.yaml'), 'config'),
+        (str(SRC_DIR / 'ad_security_reporter' / 'assets' / 'dark.qss'), 'ad_security_reporter/assets'),
+        (str(SRC_DIR / 'ad_security_reporter' / 'assets' / 'light.qss'), 'ad_security_reporter/assets'),
     ],
     hiddenimports=hiddenimports,
     hookspath=[],
