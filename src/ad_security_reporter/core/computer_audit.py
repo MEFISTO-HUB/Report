@@ -33,6 +33,14 @@ COMPUTERS_REPORT_DROP_COLUMNS = [
     "StaleStatus",
 ]
 
+COMPUTER_VALUE_LOCALIZATION = {
+    "Active": "Активен",
+    "Warning": "Предупреждение",
+    "Stale": "Неактивен",
+    "Critical": "Критично",
+    "Unknown": "Неизвестно",
+}
+
 @dataclass
 class ComputerAuditResult:
     dataframe: pd.DataFrame
@@ -52,6 +60,11 @@ def _localize_bools(df: pd.DataFrame) -> pd.DataFrame:
     for col in bool_columns:
         localized[col] = localized[col].map({True: "Да", False: "Нет"})
     return localized
+
+
+def _localize_labels(df: pd.DataFrame) -> pd.DataFrame:
+    localized = df.copy()
+    return localized.replace(COMPUTER_VALUE_LOCALIZATION)
 
 
 def _stale_status(days: float, settings: AppSettings) -> str:
@@ -97,5 +110,5 @@ def collect_computer_audit(settings: AppSettings, connector: PowerShellConnector
         "Exact LastLogon is per-DC and can be added in optional exact mode via targeted polling.",
     ]
     report_df = df.drop(columns=COMPUTERS_REPORT_DROP_COLUMNS, errors="ignore")
-    report_df = _localize_bools(report_df).rename(columns=COMPUTERS_REPORT_COLUMN_NAMES)
+    report_df = _localize_labels(_localize_bools(report_df)).rename(columns=COMPUTERS_REPORT_COLUMN_NAMES)
     return ComputerAuditResult(dataframe=report_df, summary=summary, notes=notes)
