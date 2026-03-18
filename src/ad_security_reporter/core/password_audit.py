@@ -57,6 +57,14 @@ SENSITIVE_GROUP_KEYWORDS = [
     "Account Operators",
 ]
 
+PASSWORD_VALUE_LOCALIZATION = {
+    "Fresh": "Актуален",
+    "Aging": "Требует смены",
+    "Old": "Старый",
+    "Very Old": "Очень старый",
+    "Unknown": "Неизвестно",
+}
+
 
 @dataclass
 class PasswordAuditResult:
@@ -78,6 +86,11 @@ def _localize_bools(df: pd.DataFrame) -> pd.DataFrame:
     for col in bool_columns:
         localized[col] = localized[col].map({True: "Да", False: "Нет"})
     return localized
+
+
+def _localize_labels(df: pd.DataFrame) -> pd.DataFrame:
+    localized = df.copy()
+    return localized.replace(PASSWORD_VALUE_LOCALIZATION)
 
 
 def _contains_sensitive_group(member_of) -> bool:
@@ -188,5 +201,5 @@ def collect_password_audit(settings: AppSettings, connector: PowerShellConnector
     }
 
     report_df = df.drop(columns=["MemberOf", *PASSWORD_REPORT_DROP_COLUMNS], errors="ignore")
-    report_df = _localize_bools(report_df).rename(columns=PASSWORD_REPORT_COLUMN_NAMES)
+    report_df = _localize_labels(_localize_bools(report_df)).rename(columns=PASSWORD_REPORT_COLUMN_NAMES)
     return PasswordAuditResult(policy=policy, dataframe=report_df, summary=summary, notes=notes)

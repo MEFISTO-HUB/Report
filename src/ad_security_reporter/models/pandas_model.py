@@ -3,6 +3,10 @@ from __future__ import annotations
 import pandas as pd
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
 
+DISPLAY_VALUE_LOCALIZATION = {
+    "Unknown": "Неизвестно",
+}
+
 
 def _is_missing_value(value: object) -> bool:
     """Safely evaluate whether a cell value should be treated as missing."""
@@ -35,7 +39,9 @@ class PandasTableModel(QAbstractTableModel):
             return None
         value = self._df.iat[index.row(), index.column()]
         if role == Qt.DisplayRole:
-            return "" if _is_missing_value(value) else str(value)
+            if _is_missing_value(value):
+                return ""
+            return DISPLAY_VALUE_LOCALIZATION.get(str(value), str(value))
         if role == Qt.UserRole:
             return value
         return None
